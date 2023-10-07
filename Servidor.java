@@ -1,81 +1,64 @@
-import java.io.*;
-import java.net.* ;
+import java.net.*;
 
-import javax.sound.sampled.SourceDataLine;
+class Servidor extends Sockets {
 
+  private long a = 0;
+  private long b = 0;
+  private String operacion = "";
 
-class Servidor {
-
-
-  static final int PUERTO = 5000;
-  static final int maxClientes = 10;
-
-  public Servidor(){
+  public Servidor() {
     try {
-      ServerSocket skServidor = new ServerSocket( PUERTO );
-      System.out.println("Escucho el puerto " + PUERTO );
+      ServerSocket skServidor = new ServerSocket(PUERTO);
+      System.out.println("Escucho el puerto " + PUERTO);
 
+      Socket skCliente = skServidor.accept();
 
-      for (int numCli = 0; numCli < maxClientes; numCli++) {
-        Socket skCliente = skServidor.accept();   
-        OutputStream aux = skCliente.getOutputStream();
-        System.out.println("Conexion con el cliente  "+numCli);
+      System.out.println("Conexion con el cliente  ");
+      enviarDatos(skCliente, "Ingrese una expresion a operar formato: a operacion b");
 
+      String expresion = recibirDatos(skCliente);
 
-        DataOutputStream outputServer= new DataOutputStream( aux );
-        
-        outputServer.writeUTF( "Ingrese una expresion a operar formato: a operacion b" );
-        
-        InputStream aux2 = skCliente.getInputStream();
-        DataInputStream inputServer = new DataInputStream(aux2);
-        System.out.println("El cliente envio la expresion: ");
-        String expresion = inputServer.readUTF();
-        System.out.println(expresion);
-        parsear(expresion);
-        skCliente.close();
-      }
-      System.out.println("Demasiados clientes por hoy");
-    } catch( Exception e ) {
-      System.out.println( e.getMessage() );
+      parsear(expresion);
+      Long resultado = operar(operacion, a, b);
+      System.out.println("El resultado es " + resultado);
+
+      enviarDatos(skCliente, Long.toString(resultado));
+      skCliente.close();
+
+      skServidor.close();
+      System.out.println("Cliente atendido");
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
     }
   }
-/*   private void enviarDatos(Socket socketCliente ){
-    
-    DataOutputStream outputServer= new DataOutputStream(socketCliente );  
-    outputServer.writeUTF( "Ingrese una expresion a operar formato: a operacion b" );
-a
-  } */
 
+  private void parsear(String expresion) {
+    System.out.println("La expresion es " + expresion);
+    String[] expresionDividida = expresion.split("[-+*/]");
 
-  private void parsear(String expresion){
+    this.a = Long.parseLong(expresionDividida[0].trim());
+    this.b = Long.parseLong(expresionDividida[1].trim());
 
-    String[] expresionDividida = expresion.split(" ");
-    long a = Long.parseLong(expresionDividida[0]);
-    long b = Long.parseLong(expresionDividida[2]);
-    String operacion = expresionDividida[1];
-
-    System.out.println("El resultado es: " + operar(operacion, a, b));
-
+    this.operacion = expresion.replaceAll("[0-9]", "").trim();
   }
 
-
-  private long operar(String operacion, long a, long b){
-    switch(operacion){
+  private long operar(String operacion, long a, long b) {
+    switch (operacion) {
       case "+":
-        return a+b;
+        return a + b;
       case "-":
-        return a-b;
+        return a - b;
       case "*":
-        return a*b;
+        return a * b;
       case "/":
-        return a/b;
+        return a / b;
       default:
-        System.out.println("Error");
+        System.out.println("Error ingrese una operacion valida");
         return 0;
     }
   }
-  
-  public static void main( String[] arg ) {
+
+  public static void main(String[] arg) {
     new Servidor();
   }
 }

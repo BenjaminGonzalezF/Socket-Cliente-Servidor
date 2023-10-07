@@ -1,33 +1,25 @@
-import java.io.*;
 import java.net.*;
-class Cliente {
-  static final String HOST = "localhost";
-  static final int PUERTO=5000;
-  public Cliente( ) {
-    try{
+
+class Cliente extends Sockets {
+
+  public Cliente() {
+    try {
       Socket skCliente = new Socket(HOST, PUERTO);
-      InputStream aux = skCliente.getInputStream();
-
-
-      DataInputStream inputCliente = new DataInputStream( aux );
-      System.out.println( inputCliente.readUTF() );
-      
-      OutputStream aux2 = skCliente.getOutputStream();
-      DataOutputStream outputCliente = new DataOutputStream(aux2);
+      String respuesta = recibirDatos(skCliente);
+      System.out.println(respuesta);
 
       String expresion = System.console().readLine();
-
-      outputCliente.writeUTF(expresion);
-
-
+      enviarDatos(skCliente, expresion);
+      respuesta = recibirDatos(skCliente);
+      System.out.println(respuesta);
       skCliente.close();
-    } catch(Exception e ) {
-      System.out.println( e.getMessage() );
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
     }
   }
 
-  public static void main( String[] arg ) {
-        new Cliente();
-      
+  public static void main(String[] arg) {
+    new Cliente();
+
   }
 }
